@@ -91,8 +91,8 @@ Each constraint defined in the **Feature-Agent-Spec** is evaluated on a scale of
 * **Review**:
   * All features are registered and toggled via `config.js` (e.g. `features: { slideshow: true, gallery: true, ... }`).
   * If a feature folder is physically deleted and its configuration toggled to `false`, the core registry safely skips loading it, and the app runs without any side-effects.
-  * *Minor Caveat*: In this vanilla HTML app, script and stylesheet tags are loaded in `index.html`. Deleting the directory without editing `index.html` causes browser 404 network warnings, although the code remains fully operational.
-* **Score**: `9 / 10` (Can reach `10/10` with dynamic script injection).
+  * **Dynamic Loader**: The loader dynamically injects `<script>` and `<link>` stylesheet tags at runtime based on active feature flags. Deleting a feature folder and toggling its flag to `false` is completely zero-touch, producing no 404 network warnings.
+* **Score**: `10 / 10`
 
 ### 2.4. Explicit & Swappable Core Control Loop
 * **Requirement**: The core control loop coordinates execution flow via a clean interface contract and remains entirely independent of feature implementation logic.
@@ -105,7 +105,7 @@ Each constraint defined in the **Feature-Agent-Spec** is evaluated on a scale of
 ### 2.5. Static Compliance Checking
 * **Requirement**: Automated checks must run on CI/pre-commit to detect rule violations.
 * **Review**:
-  * Implemented [verify_remnants.js](file:///Users/jarkko/_dev/agent-spec/examples/photo_map/verify_remnants.js), an AST-like static analysis tool that parses configuration files and codebase folders.
+  * Implemented [verify_remnants.js](verify_remnants.js), an AST-like static analysis tool that parses configuration files and codebase folders.
   * It automatically scans for cross-talk between separate feature blocks and reports any stray references, failing the validation checks if a violation is found.
 * **Score**: `10 / 10`
 
@@ -113,50 +113,14 @@ Each constraint defined in the **Feature-Agent-Spec** is evaluated on a scale of
 
 ## 3. Total Compliance Score
 
-$$\text{Total Score} = \mathbf{9.8 / 10} \quad (98\%)$$
+$$\text{Total Score} = \mathbf{10 / 10} \quad (100\%)$$
 
-* **Verdict**: **Outstanding Compliance**. The application is an exemplary implementation of the Feature-Agent-Spec philosophy. The registry pattern handles feature registration, while the state pubsub structure manages interaction without coupling.
+* **Verdict**: **Perfect Compliance**. The application is a reference implementation of the Feature-Agent-Spec philosophy. The registry pattern handles feature registration, while the state pubsub structure manages interaction without coupling, combined with dynamic runtime asset injection.
 
 ---
 
-## 4. Recommendations for 100% Compliance
+## 4. Verification and Matrix Testing (CI Implementation)
 
-To achieve a perfect score, we can remove the static `<script>` and `<link>` dependencies from [index.html](file:///Users/jarkko/_dev/agent-spec/examples/photo_map/index.html) and dynamically inject assets at runtime based on active configuration flags:
-
-### Proposed Dynamic Asset Injector (Zero-Touch Deletion)
-In `index.html`, replace the hardcoded feature imports with a dynamic loader script:
-```javascript
-window.addEventListener('DOMContentLoaded', () => {
-  const config = window.AppConfig;
-  
-  // Define feature folder paths
-  const featurePaths = {
-    playthrough: 'features/playthrough',
-    elevation: 'features/elevation',
-    slideshow: 'features/slideshow',
-    gallery: 'features/gallery',
-    privacy: 'features/privacy',
-    video_export: 'features/video_export',
-    three_d_playthrough: 'features/3d_playthrough'
-  };
-
-  // Inject only enabled feature files dynamically
-  Object.keys(config.features).forEach(featureId => {
-    if (config.features[featureId] === true) {
-      const path = featurePaths[featureId];
-      
-      // Inject CSS
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = `${path}/styles.css`;
-      document.head.appendChild(link);
-      
-      // Inject JS
-      const script = document.createElement('script');
-      script.src = `${path}/feature.js`;
-      document.body.appendChild(script);
-    }
-  });
-});
-```
-By doing this, deleting a feature's folder and toggling its flag to `false` in `config.js` becomes **100% touchless**—no browser 404 network warnings will appear, and no edits to `index.html` are required.
+To maintain 100% compliance over time, an automated CI pipeline runs on GitHub Actions:
+* **Zero-Remnant Checking**: Ensures code modules under `core/` and other features don't reference disabled/deleted features.
+* **JSDOM Boot Matrix Testing**: Mock Leaflet (`L`) and MapLibre canvas environments to boot the application registry under all combinations of feature configurations (Core-only, Solo-feature, All-active, and Random configs), ensuring no crashes or regressions.

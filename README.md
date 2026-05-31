@@ -2,7 +2,7 @@
 
 This application is an interactive GPX playthrough map that animates ride progress along a track, renders real-time stats and an SVG elevation profile, auto-pauses at photo stops to display slideshows, and unlocks thumbnail icons in a visited sidebar.
 
-It is implemented following the **Feature-Agent-Spec** design principles defined in [README.md](file:///Users/jarkko/_dev/agent-spec/README.md). The application favors strict modular isolation, runtime feature-flagging, and a swappable core control loop.
+It is implemented following the **Feature-Agent-Spec** design guidelines defined in [feature-agent-spec](https://github.com/ljack/feature-agent-spec). The application favors strict modular isolation, runtime feature-flagging, and a swappable core control loop.
 
 * **Playthrough**: Handles the animated bike marker, playback HUD (play/pause/seek), and real-time statistics updating based on progress.
 * **Elevation**: Renders an interactive SVG chart that maps route distance to elevation, allowing for coordinate seeking by clicking the profile.
@@ -83,7 +83,7 @@ graph TD
 ## 3. Extending the Codebase
 
 ### 3.1 How to Disable/Enable Features
-Toggle flags inside [config.js](file:///Users/jarkko/_dev/agent-spec/examples/photo_map/config.js):
+Toggle flags inside [config.js](config.js):
 ```javascript
 window.AppConfig = {
   features: {
@@ -100,7 +100,7 @@ If a feature flag is set to `false`, the Registry bypasses its hooks, and the dy
 ### 3.2 How to Delete a Feature
 To completely remove a feature (e.g., `elevation`) from the codebase without leaving broken remnants:
 1. Delete its folder: `features/elevation/`.
-2. Remove its name flag from [config.js](file:///Users/jarkko/_dev/agent-spec/examples/photo_map/config.js).
+2. Remove its name flag from [config.js](config.js).
 
 *Because assets are loaded dynamically at runtime, the application will boot and compile successfully without generating 404 network warnings or requiring edits to `index.html`.*
 
@@ -120,7 +120,7 @@ To introduce a new module (e.g., `weather_radar`):
    window.AppRegistry.register('weather_radar', new WeatherRadarFeature());
    ```
 3. Create styles in `features/weather_radar/styles.css`.
-4. Register the folder name in [index.html](file:///Users/jarkko/_dev/agent-spec/examples/photo_map/index.html)'s feature path mapping (inside `loadFeatureAssets`), and toggle its flag in [config.js](file:///Users/jarkko/_dev/agent-spec/examples/photo_map/config.js):
+4. Register the folder name in [index.html](index.html)'s feature path mapping (inside `loadFeatureAssets`), and toggle its flag in [config.js](config.js):
    ```javascript
    // config.js
    features: {
