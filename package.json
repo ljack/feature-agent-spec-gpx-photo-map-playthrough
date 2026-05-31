@@ -1,0 +1,14 @@
+{
+  "name": "feature-agent-spec-gpx-photo-map-playthrough",
+  "version": "1.0.0",
+  "description": "Example application demonstrating Feature-Agent-Spec compliance.",
+  "main": "index.html",
+  "scripts": {
+    "test:remnants": "node verify_remnants.js",
+    "test:matrix": "node scripts/matrix_test.js",
+    "test": "npm run test:remnants && npm run test:matrix"
+  },
+  "dependencies": {
+    "jsdom": "^24.0.0"
+  }
+}

@@ -1,0 +1,68 @@
+.export-btn-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.export-btn {
+  background: var(--water) !important;
+  color: #fffaf0;
+  width: 100%;
+}
+
+.export-btn:hover {
+  background: var(--ink) !important;
+}
+
+.recording-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--clay);
+}
+
+.red-dot {
+  width: 10px;
+  height: 10px;
+  background-color: var(--clay);
+  border-radius: 50%;
+  box-shadow: 0 0 6px var(--clay);
+  animation: redPulse 1s infinite alternate ease-in-out;
+}
+
+@keyframes redPulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+/* ==========================================================================
+   Clean Dashboard Styling during Video Recording
+   ========================================================================== */
+
+body.is-recording .slider-container,
+body.is-recording .checkbox-row,
+body.is-recording #resetBtn,
+body.is-recording .privacy-settings-block,
+body.is-recording .export-btn,
+body.is-recording .leaflet-control-zoom,
+body.is-recording .parked-gallery-panel {
+  display: none !important;
+}
+
+body.is-recording .controls-panel {
+  max-height: 140px;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}

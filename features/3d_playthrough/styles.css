@@ -1,0 +1,336 @@
+/* 3D Playthrough Stylesheet */
+
+/* The Leaflet map container defaults */
+#map {
+  transition: transform 0.8s cubic-bezier(0.1, 0.8, 0.25, 1),
+              width 0.8s cubic-bezier(0.1, 0.8, 0.25, 1),
+              height 0.8s cubic-bezier(0.1, 0.8, 0.25, 1),
+              top 0.8s cubic-bezier(0.1, 0.8, 0.25, 1),
+              left 0.8s cubic-bezier(0.1, 0.8, 0.25, 1);
+  transform-origin: center center;
+}
+
+/* 3D Perspective Mode styles */
+#map.mode-3d {
+  width: 160vw !important;
+  height: 160vh !important;
+  top: -30vh !important;
+  left: -30vw !important;
+  transform: perspective(1200px) rotateX(var(--map-pitch, 55deg)) rotateZ(var(--map-yaw, 0deg)) scale(var(--map-zoom-3d, 1.0));
+  transition: none !important; /* Disable all inherited CSS transitions during active 3D ticks */
+}
+
+/* Smooth transition when entering/exiting 3D */
+#map.transitioning {
+  transition: transform 0.8s cubic-bezier(0.1, 0.8, 0.25, 1),
+              width 0.8s cubic-bezier(0.1, 0.8, 0.25, 1),
+              height 0.8s cubic-bezier(0.1, 0.8, 0.25, 1),
+              top 0.8s cubic-bezier(0.1, 0.8, 0.25, 1),
+              left 0.8s cubic-bezier(0.1, 0.8, 0.25, 1) !important;
+}
+
+/* Hide Leaflet UI controls in 3D mode so they don't tilt awkwardly */
+#map.mode-3d .leaflet-control-container {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+/* Enable 3D rendering context down to Leaflet markers */
+#map.mode-3d,
+#map.mode-3d .leaflet-pane,
+#map.mode-3d .leaflet-marker-pane,
+#map.mode-3d .leaflet-marker-icon {
+  transform-style: preserve-3d;
+}
+
+/* Dynamic styling for markers in 3D so they feel upright (billboarding) */
+#map.mode-3d .bike-marker,
+#map.mode-3d .parked-map-thumb-container {
+  /* translateZ(15px) lifts the marker off the map ground to prevent clipping through tile layers */
+  transform: translateZ(15px) rotateZ(calc(-1 * var(--map-yaw, 0deg))) rotateX(calc(-1 * var(--map-pitch, 55deg))) scale(1.2) !important;
+  transform-origin: bottom center;
+  transition: none !important; /* Disable transitions on tick updates */
+}
+
+/* Drag overlay to capture rotation gestures */
+.camera-drag-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10; /* Above the map (z-index 1) but below UI panels (z-index 1000) */
+  cursor: grab;
+  display: none;
+}
+
+.camera-drag-overlay.active {
+  display: block;
+}
+
+.camera-drag-overlay:active {
+  cursor: grabbing;
+}
+
+/* 3D control button styling in main controls panel */
+.btn.three-d-btn {
+  background: var(--ink);
+  color: var(--paper);
+  border: 1px solid var(--line);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn.three-d-btn.active {
+  background: var(--forest);
+  border-color: var(--forest);
+  box-shadow: 0 0 12px rgba(47, 125, 87, 0.4);
+}
+
+/* 3D Camera HUD panel */
+.camera-hud-panel {
+  position: absolute;
+  top: 16px;
+  left: 352px;
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.camera-hud-panel.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-10px);
+}
+
+.camera-hud-title {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 4px;
+}
+
+.camera-hud-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.camera-hud-label-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.camera-hud-value {
+  color: var(--forest);
+}
+
+.camera-hud-slider {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--line);
+  outline: none;
+  -webkit-appearance: none;
+  accent-color: var(--forest);
+}
+
+.camera-hud-slider::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 6px;
+  cursor: pointer;
+  background: var(--line);
+  border-radius: 3px;
+}
+
+.camera-hud-slider::-webkit-slider-thumb {
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  background: var(--forest);
+  cursor: pointer;
+  -webkit-appearance: none;
+  margin-top: -5px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.camera-hud-toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.camera-hud-checkbox {
+  accent-color: var(--forest);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.camera-hud-btn {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  text-align: center;
+}
+
+.camera-hud-btn:hover {
+  background: var(--line);
+}
+
+/* --- 3D Flight Mode / Elevation Styling --- */
+
+/* Hide shadow polyline in standard 2D mode */
+.route-line-shadow {
+  display: none;
+}
+
+/* Styles for 3D map mode or 3D flight mode */
+#map.mode-3d .route-line-shadow {
+  display: block;
+}
+
+/* Make SVG elements support 3D rendering context in Flight Mode */
+#map.mode-3d-flight .leaflet-overlay-pane,
+#map.mode-3d-flight .leaflet-overlay-pane svg,
+#map.mode-3d-flight .leaflet-overlay-pane g {
+  transform-style: preserve-3d;
+}
+
+/* Elevate the main route polyline ribbon in 3D Flight mode */
+#map.mode-3d-flight .route-line-main {
+  transform: translateZ(12px) !important;
+  stroke: url(#route-elevation-grad) !important;
+  transition: none !important;
+}
+
+/* 3D Elevation Stem */
+.bike-elevation-stem {
+  position: absolute;
+  top: 12px; /* Starts at the center of the marker */
+  left: 11px; /* Centered horizontally */
+  width: 2px;
+  height: 0px; /* Modified dynamically by JS */
+  background: linear-gradient(to bottom, var(--sun), rgba(24, 49, 45, 0.3));
+  transform-origin: top center;
+  display: none;
+  pointer-events: none;
+}
+
+/* 3D body parent container transition */
+.bike-3d-body {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  transform-origin: center center;
+  transition: transform 0.1s ease-out;
+}
+
+/* Enable stem and elevation displacement in Mode 2 (Flight Mode) */
+#map.mode-3d-flight .bike-elevation-stem {
+  display: block;
+  height: var(--marker-ele-height, 0px);
+}
+
+#map.mode-3d-flight .bike-3d-body {
+  /* Translate marker up along the billboard's Y axis and lean/tilt it by the slope angle */
+  transform: translateY(calc(-1 * var(--marker-ele-height, 0px))) rotateX(var(--marker-slope-tilt, 0deg));
+}
+
+/* Dynamic slope direction arrow */
+.bike-slope-arrow {
+  position: absolute;
+  top: -14px;
+  left: 0;
+  width: 24px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(24, 49, 45, 0.8), 0 0 2px #000;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+#map.mode-3d-flight .bike-slope-arrow {
+  opacity: 1;
+}
+
+/* Dynamic climbing state */
+.bike-marker.climbing .bike-core {
+  background: var(--clay) !important;
+  box-shadow: 0 0 12px var(--clay) !important;
+}
+
+.bike-marker.climbing .bike-pulse {
+  background: rgba(183, 78, 55, 0.6) !important;
+}
+
+/* Dynamic descending state */
+.bike-marker.descending .bike-core {
+  background: var(--forest) !important;
+  box-shadow: 0 0 12px var(--forest) !important;
+}
+
+.bike-marker.descending .bike-pulse {
+  background: rgba(47, 125, 87, 0.6) !important;
+}
+
+/* Dynamic flat/neutral state */
+.bike-marker.flat .bike-core {
+  background: var(--sun) !important;
+  box-shadow: 0 0 10px var(--sun) !important;
+}
+
+.bike-marker.flat .bike-pulse {
+  background: rgba(216, 139, 47, 0.5) !important;
+}
+
+/* --- MapLibre 3D Terrain Container & Markers --- */
+#maplibre-container {
+  height: 100vh;
+  width: 100vw;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  display: none;
+}
+
+.maplibre-photo-marker {
+  cursor: pointer;
+  z-index: 100;
+}
+
+.maplibre-photo-marker-unvisited {
+  cursor: pointer;
+  z-index: 90;
+  box-shadow: 0 0 6px rgba(0,0,0,0.5);
+  scale: 1;
+  transition: scale 0.2s ease;
+}
+
+.maplibre-photo-marker-unvisited:hover {
+  scale: 1.3;
+}
+

@@ -1,0 +1,41 @@
+:root {
+  --ink: #18312d;
+  --muted: #5d6f6a;
+  --paper: #f7f3e9;
+  --panel: rgba(255, 250, 240, 0.95);
+  --line: #d9cfb7;
+  --forest: #2f7d57;
+  --water: #397f9d;
+  --sun: #d88b2f;
+  --clay: #b74e37;
+  --shadow: 0 12px 32px rgba(24, 49, 45, 0.15);
+}
+
+html, body, #map {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+#map {
+  height: 100vh;
+  width: 100vw;
+  z-index: 1;
+}
+
+.glass-panel {
+  background: var(--panel);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 16px;
+  z-index: 1000;
+}

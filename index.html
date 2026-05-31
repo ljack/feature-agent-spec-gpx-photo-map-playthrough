@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sports Tracker GPX Photo Map Playthrough (Agentic)</title>
+  
+  <!-- CDNs for Leaflet & Web Fonts -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" />
+  <link href="https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.css" rel="stylesheet" />
+  
+  <!-- Base Core Styles -->
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- Map elements -->
+  <div id="map"></div>
+  <div id="maplibre-container"></div>
+
+  <!-- Feature DOM UI Containers -->
+  <div id="controlsContainer"></div>
+  <div id="galleryContainer"></div>
+  <div id="slideshowContainer"></div>
+  <div id="elevationContainer"></div>
+
+  <!-- Leaflet & MapLibre Libraries -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.js"></script>
+
+  <!-- Extracted GeoJSON Data Assets -->
+  <script src="data/route_data.js"></script>
+
+  <!-- Core Infrastructure Modules -->
+  <script src="config.js"></script>
+  <script src="core/registry.js"></script>
+  <script src="core/state.js"></script>
+  <script src="core/map_engine.js"></script>
+  <script src="core/control_loop.js"></script>
+
+  <!-- Application Bootstrap -->
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      if (!window.RouteGeoJSON) {
+        console.error("Failed to load route GeoJSON data asset.");
+        return;
+      }
+
+      // Configuration-driven runtime loader for feature scripts and stylesheets
+      function loadFeatureAssets() {
+        const config = window.AppConfig;
+        const featurePaths = {
+          playthrough: 'features/playthrough',
+          elevation: 'features/elevation',
+          slideshow: 'features/slideshow',
+          gallery: 'features/gallery',
+          privacy: 'features/privacy',
+          video_export: 'features/video_export',
+          three_d_playthrough: 'features/3d_playthrough'
+        };
+
+        const promises = [];
+
+        Object.keys(config.features).forEach(featureId => {
+          if (config.features[featureId] === true) {
+            const path = featurePaths[featureId];
+            if (!path) return;
+
+            // 1. Dynamically inject feature CSS
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = `${path}/styles.css`;
+            document.head.appendChild(link);
+
+            // 2. Dynamically inject feature JS and track loading
+            const promise = new Promise((resolve) => {
+              const script = document.createElement('script');
+              script.src = `${path}/feature.js`;
+              script.onload = () => resolve();
+              script.onerror = () => {
+                console.warn(`[Loader] Failed to load feature script: ${featureId} from ${script.src}`);
+                resolve(); // Resolve anyway so other features and app core can still boot
+              };
+              document.body.appendChild(script);
+            });
+            promises.push(promise);
+          }
+        });
+
+        return Promise.all(promises);
+      }
+
+      // Execute dynamic features loading, then boot the application control loops
+      loadFeatureAssets().then(() => {
+        // 1. Intercept and filter GeoJSON via active features (e.g. privacy masking)
+        window.AppRegistry.triggerLoadData(window.RouteGeoJSON);
+
+        // 2. Ingest GeoJSON data assets into global state
+        window.AppState.loadGeoJSON(window.RouteGeoJSON);
+
+        // 3. Initialize Leaflet map engine with route path coordinates
+        window.MapEngine.initialize('map', window.AppState.routeCoords);
+
+        // 4. Trigger onInit lifecycle event on registered features
+        const context = {
+          state: window.AppState,
+          mapEngine: window.MapEngine,
+          dt: 0
+        };
+        window.AppRegistry.triggerInit(context);
+        
+        console.log("[Bootstrap] App launched successfully with dynamic feature assets.");
+      });
+    });
+  </script>
+</body>
+</html>
